@@ -3,7 +3,7 @@ AnuncIA - Despliegue Local
 ----------
 
 Este proyecto es una aplicación para la automatización de anuncios con inteligencia artificial (AnuncIA). A continuación, se presentan las instrucciones para desplegar y ejecutar el proyecto localmente utilizando Docker y Docker Compose.
-
+tu vijea come pinga
 Requisitos
 ----------
 
