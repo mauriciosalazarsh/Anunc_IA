@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 # Configuración para el manejo de contraseñas
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Configuración para tokens JWT
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -40,8 +40,8 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
-        status_code=401,
-        detail="No se pudo validar las credenciales",
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Credenciales inválidas o no proporcionadas.",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
@@ -58,4 +58,12 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if user is None:
         raise credentials_exception
 
+    return user
+
+def authenticate_user(db: Session, email: str, password: str):
+    user = db.query(Usuario).filter(Usuario.email == email).first()
+    if not user:
+        return False
+    if not verify_password(password, user.contraseña):
+        return False
     return user

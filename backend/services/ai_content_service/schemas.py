@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from datetime import datetime
 from typing import List
 
 class ObjetivoCampanaInput(BaseModel):
@@ -40,3 +41,17 @@ class CampanaDetallesInput(BaseModel):
     descripcionProducto: str
     tipoCampana: str  # Por ejemplo: Pequeña, Mediana, Grande
     duracionPreferida: str  # Por ejemplo: Corta, Mediana, Larga
+
+class DocumentoCreate(BaseModel):
+    tipo_documento: str = Field(..., example="Artículo")
+    contenido: str = Field(..., example="Contenido del documento...")
+
+class DocumentoResponse(BaseModel):
+    id_documento: int
+    tipo_documento: str
+    contenido: str
+    fecha_creacion: datetime
+    id_usuario: int
+
+    class Config:
+        from_attributes = True

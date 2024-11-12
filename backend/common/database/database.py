@@ -28,8 +28,6 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-print(f"DATABASE_URL: {DATABASE_URL}")
-
 # Dependencia para obtener la sesión de la base de datos
 def get_db():
     db = SessionLocal()

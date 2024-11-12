@@ -5,11 +5,16 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: peru4321$
-      POSTGRES_DB: postgres  # Cambié el nombre de la base de datos a 'postgres' como predeterminado
+      POSTGRES_DB: postgres
     ports:
       - "5433:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data  # Persistencia de datos
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
@@ -21,8 +26,9 @@ services:
     env_file:
       - ./backend/.env
     depends_on:
-      - db
-    command: /bin/sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
+      db:
+        condition: service_healthy
+    command: /bin/sh -c "echo 'Ejecutando migraciones...' && alembic upgrade head && echo 'Migraciones completadas' && uvicorn main:app --host 0.0.0.0 --port 8000"
 
   frontend:
     build:
