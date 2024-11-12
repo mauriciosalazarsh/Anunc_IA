@@ -10,6 +10,7 @@ class Producto(Base):
     id_producto = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, index=True, nullable=False)
     descripcion = Column(Text, nullable=True)
+    caracteristicas = Column(Text, nullable=True)
     precio = Column(Float, nullable=False)
     fecha_creacion = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
     fecha_actualizacion = Column(DateTime, default=datetime.now(timezone.utc), nullable=False, onupdate=datetime.now(timezone.utc))

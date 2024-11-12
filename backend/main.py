@@ -43,7 +43,7 @@ app.include_router(user_router, prefix="/users", tags=["users"])
 app.include_router(document_router, prefix="/documents", tags=["documents"])
 
 # Incluir el router del servicio de documentos
-app.include_router(product_router, prefix="/productos")
+app.include_router(product_router, prefix="/productos", tags=["productos"])
 
 # Punto de entrada básico para verificar si la API está funcionando
 @app.get("/")
