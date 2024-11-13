@@ -1,5 +1,4 @@
-from __future__ import annotations  # Permite referencias tipo string
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 from datetime import datetime
 from services.user_service.schemas import CuentaResponse
@@ -9,7 +8,7 @@ class UsuarioCreate(BaseModel):
     email: EmailStr = Field(..., example="juan.perez@example.com")
     password: str = Field(..., min_length=8, example="securepassword")
     
-    @validator('password')
+    @field_validator('password')
     def password_strength(cls, v):
         if len(v) < 8:
             raise ValueError('La contraseña debe tener al menos 8 caracteres.')
@@ -36,7 +35,7 @@ class UsuarioUpdate(BaseModel):
     bio: Optional[str] = Field(None, example="Actualización de biografía.")
     avatar_url: Optional[str] = Field(None, example="http://example.com/nuevo_avatar.jpg")
 
-    @validator('password')
+    @field_validator('password')
     def password_strength(cls, v):
         if v and len(v) < 8:
             raise ValueError('La contraseña debe tener al menos 8 caracteres.')

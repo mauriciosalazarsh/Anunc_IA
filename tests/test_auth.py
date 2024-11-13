@@ -7,7 +7,6 @@ from sqlalchemy.pool import StaticPool
 from backend.main import app
 from backend.common.database.database import Base, get_db
 from backend.common.models.usuario import Usuario, Cuenta
-from backend.common.schemas.usuario import UsuarioResponse
 
 # Crear una URL para la base de datos de prueba (en memoria)
 TEST_DATABASE_URL = "sqlite:///:memory:"
@@ -26,11 +25,7 @@ TestingSessionLocal = sessionmaker(
     bind=test_engine
 )
 
-# Importar todos los modelos antes de crear las tablas
-# Esto asegura que SQLAlchemy conozca todos los modelos
-from backend.common.models.usuario import Usuario, Cuenta  # Asegúrate de importar todos los modelos necesarios
-
-# Crear las tablas en la base de datos de prueba
+# Crear todas las tablas en la base de datos de prueba
 Base.metadata.create_all(bind=test_engine)
 
 # Fixture para sobrescribir la dependencia get_db
