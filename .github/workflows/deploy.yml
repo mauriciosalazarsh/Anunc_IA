@@ -38,14 +38,14 @@ jobs:
         pip install -r backend/requirements.txt
         pip install pytest coverage pytest-asyncio anyio httpx alembic
 
-    - name: Set up test database and Redis
+    # Aplica las migraciones con DATABASE_URL real (desde secretos)
+    - name: Apply Alembic migrations
       env:
-        REDIS_URL: redis://localhost:6379
-        DATABASE_URL: "sqlite:///:memory:"
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
       run: |
-        cd backend  # Cambiamos al directorio backend
+        cd backend
         alembic upgrade head
-        cd ..       # Volvemos al directorio raíz
+        cd ..
 
     - name: Run tests with coverage
       env:
