@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from backend.services.auth_service.models import Base  # Asegúrate de que el modelo de usuario hereda de Base
+from backend.common.database.database import Base
 from backend.main import app
 from fastapi.testclient import TestClient
 
