@@ -58,7 +58,7 @@ async def register_usuario(usuario: UsuarioCreate, response: Response, db: Sessi
         response.set_cookie(
             key="session_id",
             value=session_id,
-            httponly=True,
+            httponly=False,
             samesite="Lax",
             secure=False  # Cambiar a True en producción con HTTPS
         )
@@ -93,7 +93,7 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
     response.set_cookie(
         key="session_id",
         value=session_id,
-        httponly=True,
+        httponly=False,
         samesite="Lax",
         secure=False  # Cambiar a True en producción con HTTPS
     )
