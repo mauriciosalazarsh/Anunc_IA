@@ -1,30 +1,19 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from backend.services.auth_service import auth_handler
-from common.database.database import Base, get_db
-from main import app
-
-# Configuración para la base de datos de prueba
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Crear las tablas en la base de datos de prueba
-Base.metadata.create_all(bind=engine)
-
-# Override de la dependencia get_db para usar la sesión de prueba
-def override_get_db():
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-app.dependency_overrides[get_db] = override_get_db
+from unittest.mock import AsyncMock, patch
+from backend.main import app  # Asegúrate de importar tu aplicación principal de FastAPI
+from backend.common.utils.session_manager import SessionManager
 
 client = TestClient(app)
+
+@pytest.fixture(autouse=True)
+def mock_redis(mocker):
+    # Crear un mock para la instancia de Redis en el SessionManager
+    mock_redis_instance = AsyncMock()
+    patcher = patch.object(SessionManager, "redis", mock_redis_instance)
+    patcher.start()
+    yield
+    patcher.stop()
 
 @pytest.fixture
 def test_user():
@@ -43,8 +32,8 @@ def test_register_user(test_user):
 
 def test_register_existing_user(test_user):
     # Registrar el usuario por primera vez
-    client.post("/register", json=test_user)
-    
+    client.post("/auth/register", json=test_user)
+
     # Intentar registrar de nuevo con el mismo email
     response = client.post("/auth/register", json=test_user)
     assert response.status_code == 400
@@ -52,8 +41,8 @@ def test_register_existing_user(test_user):
 
 def test_login_user(test_user):
     # Registrar el usuario para iniciar sesión
-    client.post("/register", json=test_user)
-    
+    client.post("/auth/register", json=test_user)
+
     login_data = {
         "username": test_user["email"],
         "password": test_user["password"]
@@ -73,7 +62,7 @@ def test_login_invalid_credentials():
 
 def test_logout_user(test_user):
     # Registrar e iniciar sesión para obtener el token de sesión
-    client.post("/register", json=test_user)
+    client.post("/auth/register", json=test_user)
     login_data = {
         "username": test_user["email"],
         "password": test_user["password"]
@@ -88,7 +77,7 @@ def test_logout_user(test_user):
 
 def test_check_session_valid(test_user):
     # Registrar e iniciar sesión para obtener el token de sesión
-    client.post("/register", json=test_user)
+    client.post("/auth/register", json=test_user)
     login_data = {
         "username": test_user["email"],
         "password": test_user["password"]
