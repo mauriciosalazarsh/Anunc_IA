@@ -1,25 +1,34 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
-from backend.common.database.database import Base, get_db
+from common.database.database import Base, get_db
 from alembic.config import Config
 from alembic import command
 from fastapi.testclient import TestClient
 from backend.main import app
+import os
 
-# Crear un motor de base de datos en memoria para pruebas
-SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///:memory:"
+# Crear una base de datos de prueba
+TEST_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///:memory:")
 
-engine = create_engine(SQLALCHEMY_TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+# Crear el motor de base de datos de pruebas
+if 'sqlite' in TEST_DATABASE_URL:
+    engine = create_engine(
+        TEST_DATABASE_URL,
+        connect_args={"check_same_thread": False}
+    )
+else:
+    engine = create_engine(TEST_DATABASE_URL)
+
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Crear las tablas en la base de datos de pruebas
 Base.metadata.create_all(bind=engine)
 
 # Aplicar migraciones usando Alembic
-alembic_cfg = Config("alembic.ini")
-alembic_cfg.set_main_option("sqlalchemy.url", SQLALCHEMY_TEST_DATABASE_URL)
+alembic_cfg = Config(os.path.join(os.path.dirname(__file__), "../backend/alembic.ini"))
+alembic_cfg.set_main_option("script_location", "backend/alembic")
+alembic_cfg.set_main_option("sqlalchemy.url", TEST_DATABASE_URL)
 command.upgrade(alembic_cfg, "head")
 
 # Anular la dependencia get_db para usar la base de datos de pruebas

@@ -31,5 +31,5 @@ def test_register_and_login_user():
     client.cookies.set("session_id", response.cookies.get("session_id"))
 
     # Realizar una solicitud a una ruta protegida
-    response = client.get("/user/1")  # Ajusta la ruta según tu aplicación
+    response = client.get(f"/user/{response.json()['user']['id_usuario']}")  # Ajusta la ruta según tu aplicación
     assert response.status_code == 200
