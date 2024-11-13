@@ -26,8 +26,9 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 Base.metadata.create_all(bind=engine)
 
 # Aplicar migraciones usando Alembic
-alembic_cfg = Config(os.path.join(os.path.dirname(__file__), "../backend/alembic.ini"))
-alembic_cfg.set_main_option("script_location", "backend/alembic")
+alembic_ini_path = os.path.join(os.path.dirname(__file__), "../backend/alembic.ini")
+alembic_cfg = Config(alembic_ini_path)
+alembic_cfg.set_main_option("script_location", os.path.join(os.path.dirname(__file__), "../backend/migrations"))
 alembic_cfg.set_main_option("sqlalchemy.url", TEST_DATABASE_URL)
 command.upgrade(alembic_cfg, "head")
 

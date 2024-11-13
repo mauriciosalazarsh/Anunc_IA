@@ -40,7 +40,7 @@ jobs:
 
     # Aplica las migraciones sin `cd backend` para evitar duplicar la ruta
     - name: Apply Alembic migrations
-      working-directory: ./backend  # Usa `working-directory` en lugar de `cd backend`
+      working-directory: ./backend  # Configura el directorio de trabajo
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
       run: |
