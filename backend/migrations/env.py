@@ -5,7 +5,7 @@ import os
 import sys
 
 # Agregar el directorio backend al sys.path para permitir la importación de modelos
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'backend'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # Importa solo Base, ya que engine no se utiliza en env.py
 from common.database.database import Base  # Eliminado 'engine' ya que no se usa
