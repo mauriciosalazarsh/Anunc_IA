@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 from datetime import datetime
-from backend.services.document_service.schemas import CuentaResponse
+from backend.services.user_service.schemas import CuentaResponse
 
 class UsuarioCreate(BaseModel):
     nombre: str = Field(..., example="Juan Pérez")
