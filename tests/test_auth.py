@@ -1,4 +1,3 @@
-# tests/test_auth.py
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock, patch
@@ -9,8 +8,7 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def mock_redis():
-    # Crear un mock para la instancia de Redis ya inicializada en SessionManager
-    with patch.object(SessionManager, 'redis', new_callable=AsyncMock) as mock_redis_instance:
+    with patch("backend.common.utils.session_manager.SessionManager.redis", new_callable=AsyncMock) as mock_redis_instance:
         yield mock_redis_instance
 
 @pytest.fixture
