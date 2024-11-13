@@ -24,7 +24,7 @@ class UsuarioResponse(BaseModel):
     cuenta: "CuentaResponse"  # Usa una cadena para referencia tardía
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class UsuarioUpdate(BaseModel):
     nombre: Optional[str] = Field(None, example="Juan Pérez")
@@ -40,4 +40,4 @@ class UsuarioUpdate(BaseModel):
         return v
 
 # Importación local para evitar ciclos
-from backend.services.document_service.schemas import CuentaResponse
+from services.user_service.schemas import CuentaResponse
