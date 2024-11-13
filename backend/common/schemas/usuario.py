@@ -1,7 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 from datetime import datetime
-from backend.services.user_service.schemas import CuentaResponse
 
 class UsuarioCreate(BaseModel):
     nombre: str = Field(..., example="Juan Pérez")
@@ -12,7 +11,6 @@ class UsuarioCreate(BaseModel):
     def password_strength(cls, v):
         if len(v) < 8:
             raise ValueError('La contraseña debe tener al menos 8 caracteres.')
-        # Puedes añadir más validaciones de fortaleza aquí
         return v
 
 class UsuarioResponse(BaseModel):
@@ -23,10 +21,10 @@ class UsuarioResponse(BaseModel):
     avatar_url: Optional[str]
     fecha_registro: datetime
     fecha_actualizacion_perfil: datetime
-    cuenta: CuentaResponse
+    cuenta: "CuentaResponse"  # Usa una cadena para referencia tardía
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class UsuarioUpdate(BaseModel):
     nombre: Optional[str] = Field(None, example="Juan Pérez")
@@ -39,5 +37,7 @@ class UsuarioUpdate(BaseModel):
     def password_strength(cls, v):
         if v and len(v) < 8:
             raise ValueError('La contraseña debe tener al menos 8 caracteres.')
-        # Puedes añadir más validaciones de fortaleza aquí
         return v
+
+# Importación local para evitar ciclos
+from backend.services.document_service.schemas import CuentaResponse
