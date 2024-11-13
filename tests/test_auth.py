@@ -35,7 +35,7 @@ def test_user():
     }
 
 def test_register_user(test_user):
-    response = client.post("/register", json=test_user)
+    response = client.post("/auth/register", json=test_user)
     assert response.status_code == 201
     data = response.json()
     assert data["email"] == test_user["email"]
@@ -46,7 +46,7 @@ def test_register_existing_user(test_user):
     client.post("/register", json=test_user)
     
     # Intentar registrar de nuevo con el mismo email
-    response = client.post("/register", json=test_user)
+    response = client.post("/auth/register", json=test_user)
     assert response.status_code == 400
     assert response.json()["detail"] == "El email ya está registrado."
 
@@ -58,7 +58,7 @@ def test_login_user(test_user):
         "username": test_user["email"],
         "password": test_user["password"]
     }
-    response = client.post("/login", data=login_data)
+    response = client.post("/auth/login", data=login_data)
     assert response.status_code == 200
     assert "access_token" in response.json()
 
@@ -67,7 +67,7 @@ def test_login_invalid_credentials():
         "username": "nonexistent@example.com",
         "password": "wrongpassword"
     }
-    response = client.post("/login", data=login_data)
+    response = client.post("/auth/login", data=login_data)
     assert response.status_code == 400
     assert response.json()["detail"] == "Credenciales inválidas."
 
@@ -78,11 +78,11 @@ def test_logout_user(test_user):
         "username": test_user["email"],
         "password": test_user["password"]
     }
-    login_response = client.post("/login", data=login_data)
+    login_response = client.post("/auth/login", data=login_data)
     session_id = login_response.cookies.get("session_id")
 
     # Realizar el logout
-    response = client.post("/logout", cookies={"session_id": session_id})
+    response = client.post("/auth/logout", cookies={"session_id": session_id})
     assert response.status_code == 200
     assert response.json()["message"] == "Sesión cerrada"
 
@@ -93,16 +93,16 @@ def test_check_session_valid(test_user):
         "username": test_user["email"],
         "password": test_user["password"]
     }
-    login_response = client.post("/login", data=login_data)
+    login_response = client.post("/auth/login", data=login_data)
     session_id = login_response.cookies.get("session_id")
 
     # Verificar la sesión válida
-    response = client.get("/check_session", cookies={"session_id": session_id})
+    response = client.get("/auth/check_session", cookies={"session_id": session_id})
     assert response.status_code == 200
     assert response.json()["message"] == "Sesión válida"
 
 def test_check_session_invalid():
     # Intentar verificar una sesión sin una cookie de sesión
-    response = client.get("/check_session")
+    response = client.get("/auth/check_session")
     assert response.status_code == 401
     assert response.json()["detail"] == "Credenciales no proporcionadas."
