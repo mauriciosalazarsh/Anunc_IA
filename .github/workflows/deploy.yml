@@ -33,6 +33,7 @@ jobs:
         REDIS_URL: redis://localhost:6379
       run: |
         export DATABASE_URL="sqlite:///:memory:"
+        cd backend
         alembic upgrade head
 
     - name: Run tests with coverage
