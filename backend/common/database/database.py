@@ -2,12 +2,14 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
-from dotenv import load_dotenv  # Asegúrate de cargar dotenv
 import os
 
 
-# Cargar las variables de entorno desde el archivo .env
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '../../.env'))
+# Intentar cargar las variables de entorno desde .env solo si existe
+dotenv_path = os.path.join(os.path.dirname(__file__), '../../.env')
+if os.path.exists(dotenv_path):
+    from dotenv import load_dotenv
+    load_dotenv(dotenv_path=dotenv_path)
 
 # Obtener la URL de la base de datos
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -16,7 +18,6 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL is None:
     raise ValueError("DATABASE_URL no está definida. Asegúrate de tener un archivo .env correctamente configurado.")
 
-print(DATABASE_URL)
 
 # Verificar si estamos usando SQLite
 if 'sqlite' in DATABASE_URL:

@@ -23,6 +23,16 @@ jobs:
       with:
         python-version: '3.x'
 
+    - name: Set PYTHONPATH
+      run: echo "PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/backend" >> $GITHUB_ENV
+
+    # Configura variables de entorno usando los secretos de GitHub
+    - name: Set environment variables
+      run: |
+        echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+        echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> $GITHUB_ENV
+        echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+
     - name: Install dependencies
       run: |
         pip install -r backend/requirements.txt
