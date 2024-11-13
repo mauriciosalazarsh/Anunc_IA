@@ -25,7 +25,11 @@ TestingSessionLocal = sessionmaker(
     bind=test_engine
 )
 
-# Crear todas las tablas en la base de datos de prueba
+# Importar todos los modelos antes de crear las tablas
+# Esto asegura que SQLAlchemy conozca todos los modelos
+from backend.common.models.usuario import Usuario, Cuenta  # Asegúrate de importar todos los modelos necesarios
+
+# Crear las tablas en la base de datos de prueba
 Base.metadata.create_all(bind=test_engine)
 
 # Fixture para sobrescribir la dependencia get_db
@@ -102,7 +106,7 @@ def test_login_user(test_user):
     response = client.post("/auth/login", data=login_data)
     assert response.status_code == 200
     # Dependiendo de la implementación, ajusta la aserción
-    # Aquí asumimos que devuelve un mensaje de éxito
+    # Aquí asumimos que devuelve un token de acceso
     assert "access_token" in response.json()
 
 # Prueba para iniciar sesión con credenciales inválidas
