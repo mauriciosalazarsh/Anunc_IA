@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 
 class Usuario(Base):
     __tablename__ = "usuarios"
+    __table_args__ = {'extend_existing': True}  # Añadir esta línea para evitar errores de redefinición
 
     id_usuario = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, index=True, nullable=False)
@@ -28,6 +29,7 @@ class Usuario(Base):
 
 class Cuenta(Base):
     __tablename__ = "cuentas"
+    __table_args__ = {'extend_existing': True}  # Añadir esta línea
 
     id_cuenta = Column(Integer, primary_key=True, index=True)
     id_usuario = Column(Integer, ForeignKey("usuarios.id_usuario"), unique=True, nullable=False)
