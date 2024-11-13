@@ -38,14 +38,13 @@ jobs:
         pip install -r backend/requirements.txt
         pip install pytest coverage pytest-asyncio anyio httpx alembic
 
-    # Aplica las migraciones con DATABASE_URL real (desde secretos)
+    # Aplica las migraciones sin `cd backend` para evitar duplicar la ruta
     - name: Apply Alembic migrations
+      working-directory: ./backend  # Usa `working-directory` en lugar de `cd backend`
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
       run: |
-        cd backend
         alembic upgrade head
-        cd ..
 
     - name: Run tests with coverage
       env:
