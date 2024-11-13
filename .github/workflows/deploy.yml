@@ -3,11 +3,16 @@ name: Deploy AnuncIA to AWS
 on:
   push:
     branches:
-      - main 
+      - main
 
 jobs:
   deploy_backend:
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
 
     steps:
     - name: Checkout code
@@ -18,25 +23,21 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Set PYTHONPATH
-      run: echo "PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/backend" >> $GITHUB_ENV
-
-    # Configura variables de entorno usando los secretos de GitHub
-    - name: Set environment variables
-      run: |
-        echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
-        echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> $GITHUB_ENV
-        echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
-
-    - name: Install backend dependencies
+    - name: Install dependencies
       run: |
         pip install -r backend/requirements.txt
-        pip install pytest coverage pytest-asyncio anyio httpx
+        pip install pytest coverage pytest-asyncio anyio httpx alembic
 
-    - name: Clear coverage cache
-      run: rm -f .coverage 
+    - name: Set up test database and Redis
+      env:
+        REDIS_URL: redis://localhost:6379
+      run: |
+        export DATABASE_URL="sqlite:///:memory:"
+        alembic upgrade head
 
     - name: Run tests with coverage
+      env:
+        REDIS_URL: redis://localhost:6379
       run: |
         coverage run --rcfile=.coveragerc -m pytest tests
         coverage report

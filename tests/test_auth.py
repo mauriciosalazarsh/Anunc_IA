@@ -1,23 +1,12 @@
 import pytest
 from fastapi.testclient import TestClient
-from backend.main import app 
-from sqlalchemy.orm import Session
-from common.database.database import get_db 
-from passlib.context import CryptContext
+from backend.main import app
 import uuid
 
 client = TestClient(app)
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-@pytest.fixture(scope="module")
-def test_db():
-    db = next(get_db())  # Obtén la sesión de la base de datos
-    yield db  # Proporciona la sesión para las pruebas
-    db.close()  # Cierra la sesión después de las pruebas
-
-def test_register_and_login_user(test_db):
-    # Genera un correo único para evitar duplicados
+def test_register_and_login_user():
+    # Genera un correo electrónico único para evitar duplicados
     unique_email = f"testuser_{uuid.uuid4()}@example.com"
 
     # Registro del usuario con correo único
@@ -26,12 +15,21 @@ def test_register_and_login_user(test_db):
         "email": unique_email,
         "password": "passwordTest123"
     })
-    assert response.status_code == 200  
-    assert "msg" in response.json()  
+    assert response.status_code == 201
+    assert response.json()["email"] == unique_email
 
-    response = client.post("/auth/login", json={
-        "email": unique_email,
+    # Iniciar sesión
+    response = client.post("/auth/login", data={
+        "username": unique_email,
         "password": "passwordTest123"
-    })
+    }, allow_redirects=True)
     assert response.status_code == 200
-    assert "access_token" in response.json() 
+    assert response.json()["message"] == "Inicio de sesión exitoso"
+    assert "session_id" in response.cookies
+
+    # Configurar la cookie de sesión para solicitudes posteriores
+    client.cookies.set("session_id", response.cookies.get("session_id"))
+
+    # Realizar una solicitud a una ruta protegida
+    response = client.get("/user/1")  # Ajusta la ruta según tu aplicación
+    assert response.status_code == 200

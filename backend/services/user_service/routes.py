@@ -1,17 +1,12 @@
-# backend/services/user_service/routes.py
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from common.database.database import get_db
 from common.models.usuario import Usuario
 from common.schemas.usuario import UsuarioResponse, UsuarioUpdate
-from passlib.context import CryptContext
 from datetime import datetime, timezone
-from services.auth_service.security import get_password_hash, get_current_user  # Importa get_current_user
+from services.auth_service.security import get_password_hash, get_current_user
 
 router = APIRouter()
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @router.get("/{id_usuario}", response_model=UsuarioResponse, summary="Obtener información de un usuario")
 def obtener_usuario(id_usuario: int, current_user: Usuario = Depends(get_current_user), db: Session = Depends(get_db)):
