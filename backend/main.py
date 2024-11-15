@@ -1,3 +1,7 @@
+from ddtrace import patch_all, tracer
+patch_all()  # Habilita el trazado automático para todas las dependencias compatibles
+
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from services.ai_content_service.routes import router as ai_content_router
@@ -11,6 +15,11 @@ from mangum import Mangum  # Importar Mangum para Lambda
 
 # Cargar las variables de entorno
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
+
+# Configura el tracer de Datadog para FastAPI
+tracer.configure(
+    hostname=os.getenv("DD_AGENT_HOST", "localhost")  # Asegúrate de que apunte al Datadog Agent
+)
 
 # Crear la instancia de FastAPI
 app = FastAPI(
