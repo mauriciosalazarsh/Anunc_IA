@@ -1,17 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { usePopper } from "react-popper";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import {
     CubeIcon,
     PowerIcon,
     WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
+import { AuthContext } from "../../../context/AuthContext";
 
 function ProfileDropdown() {
     const [referenceElement, setReferenceElement] = useState(null);
     const [popperElement, setPopperElement] = useState(null);
-    const navigate = useNavigate();
+    const { logout } = useContext(AuthContext);
+
     let { styles, attributes } = usePopper(referenceElement, popperElement, {
         placement: "bottom-end",
         modifiers: [
@@ -26,16 +28,7 @@ function ProfileDropdown() {
 
     // Función para manejar el cierre de sesión
     const handleLogout = async () => {
-        try {
-            await fetch("http://localhost:8000/auth/logout", {
-                method: "POST",
-                credentials: 'include', // Asegura que las cookies se envían en la solicitud
-            });
-            // Redirige al usuario a /login
-            navigate("/login");
-        } catch (error) {
-            console.error("Error al cerrar sesión:", error);
-        }
+        await logout();
     };
 
     return (
@@ -44,7 +37,7 @@ function ProfileDropdown() {
                 ref={setReferenceElement}
                 className="inline-flex h-8 w-8 rounded-full overflow-hidden outline outline-2 outline-offset-2 outline-slate-300 dark:outline-slate-700"
             >
-                <img src="/images/avatar/a.jpg" alt="" />
+                <img src="/images/avatar/a.jpg" alt="Perfil" />
             </Menu.Button>
             <Transition
                 enter="transition duration-100 ease-out"
@@ -62,7 +55,7 @@ function ProfileDropdown() {
                 >
                     <div className="p-4 flex items-center">
                         <div className="inline-flex flex-shrink-0 h-10 w-10 rounded-full overflow-hidden outline outline-2 outline-offset-2 outline-slate-300 dark:outline-slate-700">
-                            <img src="/images/avatar/a.jpg" alt="" />
+                            <img src="/images/avatar/a.jpg" alt="Perfil" />
                         </div>
                         <div className="ms-4">
                             <h6 className="text-xs font-bold text-slate-700 dark:text-white -mt-0.5">

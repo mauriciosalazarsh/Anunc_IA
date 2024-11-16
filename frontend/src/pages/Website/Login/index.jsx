@@ -1,59 +1,56 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useContext, useEffect } from "react";
+import { AuthContext } from "../../../context/AuthContext";
 import Layout from "../../../layout/website";
 import Section from "../../../layout/global/Section";
 import Container from "../../../layout/global/Container";
 import { Label, Input, Button } from "../../../components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFacebookF, faGoogle } from "@fortawesome/free-brands-svg-icons";
+import { Navigate } from "react-router-dom";
 
 function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
-    const navigate = useNavigate();
+    const { login, isAuthenticated, isLoading } = useContext(AuthContext);
 
     useEffect(() => {
-        // Verificar si el usuario ya tiene una sesión iniciada
-        const token = localStorage.getItem("accessToken");
-        if (token) {
-            // Redirigir a /dashboard si el token existe
-            navigate("/dashboard");
+        if (!isLoading && isAuthenticated) {
+            // Redirigir al dashboard si ya está autenticado
+            // Puedes usar Navigate o useNavigate
+            // Aquí usaremos Navigate para mantener la lógica declarativa
         }
-    }, [navigate]); // Dependencia navigate para asegurar la redirección una vez
+    }, [isLoading, isAuthenticated]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
-    
+        setErrorMessage("");
+
         try {
-            const response = await fetch("http://localhost:8000/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: new URLSearchParams({
-                    username: email,
-                    password: password,
-                }),
-            });
-    
-            if (!response.ok) {
-                throw new Error("Error en el inicio de sesión");
-            }
-    
-            const data = await response.json();
-            console.log("Inicio de sesión exitoso:", data);
-    
-            // Guardar el token en localStorage
-            localStorage.setItem("accessToken", data.access_token);
-    
-            // Redirigir a /dashboard
-            navigate("/dashboard");
+            await login(email, password);
+            // La redirección está manejada por el AuthContext's login function
         } catch (error) {
-            setErrorMessage("Correo o contraseña incorrectos");
+            setErrorMessage(error.message || "Correo o contraseña incorrectos");
             console.error("Error:", error);
         }
     };
+
+    if (isLoading) {
+        return (
+            <Layout title="Cargando...">
+                <Section className="py-10 my-auto">
+                    <Container>
+                        <p className="text-center text-slate-500">Verificando sesión...</p>
+                    </Container>
+                </Section>
+            </Layout>
+        );
+    }
+
+    if (isAuthenticated) {
+        // Redirigir al dashboard si ya está autenticado
+        return <Navigate to="/dashboard" replace />;
+    }
 
     return (
         <Layout title="Iniciar Sesión">

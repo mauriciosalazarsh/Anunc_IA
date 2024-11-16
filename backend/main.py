@@ -16,7 +16,8 @@ from mangum import Mangum  # Importar Mangum para Lambda
 # Cargar las variables de entorno
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
 
-# Configura el tracer de Datadog para FastAPI
+
+#Configura el tracer de Datadog para FastAPI
 tracer.configure(
     hostname=os.getenv("DD_AGENT_HOST", "localhost")  # Asegúrate de que apunte al Datadog Agent
 )

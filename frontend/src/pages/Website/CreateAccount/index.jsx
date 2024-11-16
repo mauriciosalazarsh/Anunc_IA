@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { AuthContext } from "../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../../layout/website";
 import Section from "../../../layout/global/Section";
@@ -7,44 +8,51 @@ import { Label, Input, Button } from "../../../components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFacebookF, faGoogle } from "@fortawesome/free-brands-svg-icons";
 
-function CreateAccount() {
+function CreateAccountPage() {
     const [nombre, setNombre] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
+    const { login } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const handleRegister = async (e) => {
-    e.preventDefault();
+        e.preventDefault();
+        setErrorMessage("");
+        setSuccessMessage("");
 
-    if (password !== confirmPassword) {
-        setErrorMessage("Las contraseñas no coinciden");
-        return;
-    }
-
-    try {
-        const response = await fetch("http://localhost:8000/auth/register", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ nombre, email, password }),
-        });
-
-        if (!response.ok) {
-            throw new Error("Error en el registro");
+        if (password !== confirmPassword) {
+            setErrorMessage("Las contraseñas no coinciden");
+            return;
         }
 
-        const data = await response.json();
-        localStorage.setItem("accessToken", data.access_token);
-        navigate("/dashboard");
-    } catch (error) {
-        setErrorMessage("Error en el registro, verifique los datos");
-        console.error("Error:", error);
-    }
-};
+        try {
+            const response = await fetch("http://localhost:8000/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({ nombre, email, password }),
+            });
 
+            if (!response.ok) {
+                const errorData = await response.json();
+                setErrorMessage(errorData.detail || "Error en el registro");
+                return;
+            }
+
+            setSuccessMessage("Registro exitoso. Redirigiendo al dashboard...");
+
+            // Opcional: Iniciar sesión automáticamente después del registro
+            await login(email, password);
+        } catch (error) {
+            setErrorMessage("Error en el registro, por favor intente más tarde");
+            console.error("Error:", error);
+        }
+    };
 
     return (
         <Layout title="Crear Cuenta">
@@ -63,6 +71,9 @@ function CreateAccount() {
                                 </div>
                                 {errorMessage && (
                                     <p className="text-red-500 text-sm">{errorMessage}</p>
+                                )}
+                                {successMessage && (
+                                    <p className="text-green-500 text-sm">{successMessage}</p>
                                 )}
                                 <form onSubmit={handleRegister}>
                                     <div className="py-2">
@@ -149,4 +160,4 @@ function CreateAccount() {
     );
 }
 
-export default CreateAccount;
+export default CreateAccountPage;

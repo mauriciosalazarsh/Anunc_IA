@@ -31,9 +31,15 @@ function RecentDocument() {
                         <tbody>
                             {documents.length ? (
                                 documents.slice(0, 3).map((item, index) => {
-                                    const icon = templates.filter(template =>
+                                    const template = templates.find(template =>
                                         template.name.includes(item.template)
-                                    )[0].icon;
+                                    );
+
+                                    const icon = template?.icon || (
+                                        <span role="img" aria-label="Documento">
+                                            📄
+                                        </span> // Valor predeterminado
+                                    );
 
                                     return (
                                         <DocumentRow
