@@ -6,6 +6,8 @@ import LoginPage from "../pages/Website/Login";
 import CreateAccountPage from "../pages/Website/CreateAccount";
 import TemplatesPage from "../pages/App/Templates";
 import TemplatesWriterPage from "../pages/App/Templates/Writer";
+import DocumentsPage from "../pages/App/Documents";
+import DocumentsEdit from "../pages/App/Documents/Edit";
 
 // app
 import AppDashboard from "../pages/App/Dashboard";
@@ -49,6 +51,14 @@ function Router() {
                             <Route 
                                 path="dashboard" 
                                 element={<ProtectedRoute><AppDashboard /></ProtectedRoute>} 
+                            />
+                            <Route 
+                                path="documents" 
+                                element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} 
+                            />
+                            <Route 
+                                path="documents/edit/:documentId" 
+                                element={<ProtectedRoute><DocumentsEdit /></ProtectedRoute>} 
                             />
                         </Route>
                     </Routes>

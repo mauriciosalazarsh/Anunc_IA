@@ -63,7 +63,7 @@ const menuData = [
     {
         icon: <Notes />,
         text: "Documentos Creados",
-        link: "/#",
+        link: "/documents",
     },
     {
         icon: <Internet />,

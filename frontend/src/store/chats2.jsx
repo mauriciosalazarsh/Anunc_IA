@@ -215,7 +215,7 @@ React is a popular JavaScript library used for building user interfaces, and fol
 3. **State Management:** Use state management libraries like Redux or Mobx for handling complex state logic, shared state between components, and better predictability.
 4. **Avoid Directly Manipulating the DOM:** In React, avoid directly manipulating the DOM using native DOM APIs like getElementById or innerHTML. Instead, let React handle the rendering and use React's state and props to manage changes.
 5. **Keys in Lists:** When rendering lists in React, always provide a unique key prop to each item. This helps React efficiently update the UI when the list changes.
-6. **Immutability:** Avoid directly modifying state and props as it can lead to unintended side effects. Use immutable data structures or helper libraries (e.g., Immutable.js) to handle updates more predictably.
+6. **Immutability:** Avoid direzctly modifying state and props as it can lead to unintended side effects. Use immutable data structures or helper libraries (e.g., Immutable.js) to handle updates more predictably.
 7. **Performance Optimization:** Use tools like React's memo or PureComponent to prevent unnecessary re-renders, and leverage React's built-in shouldComponentUpdate or React.memo for functional components.
 8. **Destructuring Props:** Destructure props in functional components to make your code cleaner and easier to read, as well as to avoid unnecessary repetition.
 9. **PropTypes or TypeScript:** Type-checking is crucial for avoiding bugs and maintaining a healthy codebase. Use PropTypes or TypeScript to define the expected types of props and state.
