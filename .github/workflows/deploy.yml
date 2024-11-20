@@ -26,7 +26,6 @@ jobs:
     - name: Set PYTHONPATH
       run: echo "PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/backend" >> $GITHUB_ENV
 
-    # Configura variables de entorno usando los secretos de GitHub
     - name: Set environment variables
       run: |
         echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
@@ -38,9 +37,8 @@ jobs:
         pip install -r backend/requirements.txt
         pip install pytest coverage pytest-asyncio anyio httpx alembic
 
-    # Aplica las migraciones sin `cd backend` para evitar duplicar la ruta
     - name: Apply Alembic migrations
-      working-directory: ./backend  # Configura el directorio de trabajo
+      working-directory: ./backend
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
       run: |
@@ -73,6 +71,7 @@ jobs:
           --zip-file fileb://backend.zip
 
   deploy_frontend:
+    needs: deploy_backend
     runs-on: ubuntu-latest
 
     steps:
@@ -82,26 +81,19 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '18' 
+        node-version: '18'
 
     - name: Install frontend dependencies
       run: |
         cd frontend
         npm install
 
-    # Skip deployment in development mode
-    - name: Skip deployment in development mode
-      if: ${{ github.event_name == 'push' }}
-      run: echo "Development build, skipping deployment."
-
-    - name: Build frontend (only for production)
-      if: ${{ github.event_name != 'push' }}
+    - name: Build frontend
       run: |
         cd frontend
         npm run build
 
-    - name: Deploy to S3 (only if build exists)
-      if: ${{ github.event_name != 'push' }}
+    - name: Deploy to S3
       run: |
         if [ -d "frontend/build" ]; then
           aws s3 sync frontend/build/ s3://anunc-ia-frontend --delete
