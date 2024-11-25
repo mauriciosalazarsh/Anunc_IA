@@ -46,7 +46,7 @@ jobs:
           --function-name anunc-ia-backend \
           --zip-file fileb://backend.zip
 
-  deploy_frontend:
+  deploy_frontend_after_backend:
     runs-on: ubuntu-latest
     needs: deploy_backend
 
