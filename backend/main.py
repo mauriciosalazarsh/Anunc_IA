@@ -71,7 +71,7 @@ async def root():
     return {"message": "Bienvenido a la API publicitaria"}
 
 # Adaptador Mangum para ejecutar en AWS Lambda
-handler = Mangum(app)
+handler = Mangum(app, api_gateway=False)
 
 # Este bloque solo es necesario si deseas ejecutar la aplicación localmente con Uvicorn
 if __name__ == "__main__":
