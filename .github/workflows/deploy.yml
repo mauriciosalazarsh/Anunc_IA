@@ -128,6 +128,7 @@ jobs:
         aws lambda update-function-configuration \
           --function-name anunc-ia-backend \
           --layers $LAYER_ARN
+        aws lambda wait function-updated --function-name anunc-ia-backend
         aws lambda update-function-code \
           --function-name anunc-ia-backend \
           --zip-file fileb://backend.zip
