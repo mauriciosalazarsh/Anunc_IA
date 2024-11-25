@@ -36,15 +36,16 @@ jobs:
     - name: Install dependencies
       working-directory: ./backend
       run: |
-        pip install -r requirements.txt -t ./package
+        pip install -r requirements.txt
+        pip install alembic  # Instala Alembic si no está en requirements.txt
 
-    # Aplica las migraciones sin `cd backend` para evitar duplicar la ruta
+    # Aplica las migraciones usando Alembic
     - name: Apply Alembic migrations
       working-directory: ./backend
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
       run: |
-        alembic upgrade head
+        python -m alembic upgrade head  # Ejecuta Alembic usando python -m
 
     - name: Run tests with coverage
       env:
