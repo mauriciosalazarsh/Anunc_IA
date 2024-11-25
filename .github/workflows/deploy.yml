@@ -25,18 +25,15 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
 
-    - name: Install dependencies
+    - name: Install dependencies and package code
       working-directory: ./backend
       run: |
+        mkdir -p package
         python -m pip install --upgrade pip
         pip install --no-cache-dir -r requirements.txt -t package
-
-    - name: Package and deploy to AWS Lambda
-      working-directory: ./backend
-      run: |
-        cp main.py package/
+        cp -r * package/
         cd package
-        zip -r ../backend.zip .
+        zip -r9 ../backend.zip .
         cd ..
         ZIP_SIZE=$(du -b backend.zip | cut -f1)
         echo "Backend package size: $ZIP_SIZE bytes"
