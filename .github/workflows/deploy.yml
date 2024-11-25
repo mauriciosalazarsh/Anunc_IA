@@ -42,7 +42,6 @@ jobs:
         mkdir -p lambda_layer/python
         pip install --upgrade pip
         pip install --no-cache-dir -r backend/requirements.txt -t lambda_layer/python
-        pip install --no-cache-dir ddtrace -t lambda_layer/python
         find lambda_layer/python -name "*.pyc" -delete
         find lambda_layer/python -name "__pycache__" -delete
         find lambda_layer/python -name "*.md" -delete
