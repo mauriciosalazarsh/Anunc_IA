@@ -72,9 +72,10 @@ async def register_usuario(
             key="session_id",
             value=session_id,
             httponly=False,
-            samesite="Lax",
-            secure=False  # Cambiar a True en producción con HTTPS
-        )
+            samesite="None",
+            secure=False,
+            path="/",  # Cambiar a True en producción con HTTPS
+            )
         logs.append("Cookie de sesión configurada en la respuesta")
 
         # Imprimir todos los logs en un solo print
