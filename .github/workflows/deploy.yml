@@ -34,6 +34,7 @@ jobs:
         echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
 
     - name: Install dependencies
+      working-directory: ./backend
       run: |
         pip install -r backend/requirements.txt
         pip install pytest coverage pytest-asyncio anyio httpx alembic
@@ -56,9 +57,19 @@ jobs:
         coverage xml -o coverage.xml
       continue-on-error: true
 
-    - name: Zip backend code
-      run: zip -r backend.zip backend/ main.py requirements.txt
-
+    - name: Prepare Lambda package
+      run: |
+        # Copia todo el código de backend y dependencias al paquete
+        cp -r backend/* backend/package/
+        cp backend/main.py backend/package/
+        cd backend/package
+        zip -r ../../backend.zip .
+        cd ../..
+    
+    - name: List ZIP contents
+      run: |
+        unzip -l backend.zip
+    
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
