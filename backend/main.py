@@ -36,7 +36,7 @@ app = FastAPI(
 # Configuración de CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080"],  # Cambia esto a la URL de producción cuando despliegues
+    allow_origins=["https://anuncia.tech", "http://localhost:8080"]
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

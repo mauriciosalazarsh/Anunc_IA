@@ -1,6 +1,6 @@
-// src/context/AuthContext.jsx
 import React, { createContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../api/api"; // Importar axiosInstance
 
 // Crear el contexto
 export const AuthContext = createContext();
@@ -14,16 +14,8 @@ export const AuthProvider = ({ children }) => {
     // Función para verificar la sesión
     const checkSession = async () => {
         try {
-            const response = await fetch("http://localhost:8000/auth/check_session", {
-                method: "GET",
-                credentials: "include",
-            });
-
-            if (response.ok) {
-                setIsAuthenticated(true);
-            } else {
-                setIsAuthenticated(false);
-            }
+            const response = await axiosInstance.get("/auth/check_session");
+            setIsAuthenticated(true);
         } catch (error) {
             console.error("Error al verificar la sesión:", error);
             setIsAuthenticated(false);
@@ -39,41 +31,26 @@ export const AuthProvider = ({ children }) => {
 
     // Función para iniciar sesión
     const login = async (email, password) => {
-        const response = await fetch("http://localhost:8000/auth/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-            credentials: "include",
-            body: new URLSearchParams({
+        try {
+            const response = await axiosInstance.post("/auth/login", {
                 username: email,
                 password: password,
-            }),
-        });
+            });
 
-        if (response.ok) {
             setIsAuthenticated(true);
             navigate("/dashboard");
-        } else {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || "Error en el inicio de sesión");
+        } catch (error) {
+            const errorMessage = error.response?.data?.detail || "Error en el inicio de sesión";
+            throw new Error(errorMessage);
         }
     };
 
     // Función para cerrar sesión
     const logout = async () => {
         try {
-            const response = await fetch("http://localhost:8000/auth/logout", {
-                method: "POST",
-                credentials: "include",
-            });
-
-            if (response.ok) {
-                setIsAuthenticated(false);
-                navigate("/login");
-            } else {
-                throw new Error("Error al cerrar sesión");
-            }
+            await axiosInstance.post("/auth/logout");
+            setIsAuthenticated(false);
+            navigate("/login");
         } catch (error) {
             console.error("Error al cerrar sesión:", error);
         }
