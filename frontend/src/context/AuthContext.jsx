@@ -1,6 +1,7 @@
+// src/context/AuthContext.jsx
 import React, { createContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../api/api"; // Importar axiosInstance
+import axiosInstance from "../api/api"; // Asegúrate de que la ruta es correcta
 
 // Crear el contexto
 export const AuthContext = createContext();
@@ -14,7 +15,7 @@ export const AuthProvider = ({ children }) => {
     // Función para verificar la sesión
     const checkSession = async () => {
         try {
-            const response = await axiosInstance.get("/auth/check_session");
+            await axiosInstance.get("/auth/check_session");
             setIsAuthenticated(true);
         } catch (error) {
             console.error("Error al verificar la sesión:", error);
@@ -37,10 +38,16 @@ export const AuthProvider = ({ children }) => {
                 password: password,
             });
 
+            // Si necesitas utilizar datos de la respuesta, hazlo aquí
+            // Por ejemplo:
+            // const { token } = response.data;
+
             setIsAuthenticated(true);
             navigate("/dashboard");
         } catch (error) {
-            const errorMessage = error.response?.data?.detail || "Error en el inicio de sesión";
+            // Manejar errores de forma adecuada
+            const errorMessage =
+                error.response?.data?.detail || "Error en el inicio de sesión";
             throw new Error(errorMessage);
         }
     };
