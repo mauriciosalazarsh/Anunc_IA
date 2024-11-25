@@ -2,6 +2,11 @@ import redis.asyncio as aioredis
 from datetime import timedelta
 import os
 import asyncio
+import logging
+
+# Configuración básica de logging
+logger = logging.getLogger("uvicorn.error")
+logger.setLevel(logging.INFO)
 
 SESSION_TIMEOUT = timedelta(minutes=30)
 
@@ -13,7 +18,7 @@ class SessionManager:
         """Inicializa la conexión a Redis si no está ya establecida."""
         if cls.redis_client is None:
             redis_url = os.getenv("REDIS_URL", "redis://redis:6379")  # URL por defecto para Docker
-            print(f"Conectando a Redis en: {redis_url}")
+            logger.info(f"Conectando a Redis en: {redis_url}")
             try:
                 cls.redis_client = aioredis.from_url(
                     redis_url,
@@ -24,9 +29,9 @@ class SessionManager:
                 # Verifica la conexión
                 pong = await cls.redis_client.ping()
                 if pong:
-                    print("Conexión a Redis exitosa.")
+                    logger.info("Conexión a Redis exitosa.")
             except Exception as e:
-                print(f"Error conectando a Redis: {e}")
+                logger.error(f"Error conectando a Redis: {e}")
                 raise
 
     @classmethod
@@ -35,7 +40,7 @@ class SessionManager:
         if cls.redis_client:
             await cls.redis_client.close()
             cls.redis_client = None
-            print("Conexión a Redis cerrada.")
+            logger.info("Conexión a Redis cerrada.")
 
     def __init__(self):
         """Inicializa una instancia de SessionManager. Asegura que Redis esté inicializado."""
@@ -47,24 +52,28 @@ class SessionManager:
         """Almacena un JWT asociado a una sesión."""
         try:
             await self.redis.set(session_id, jwt_token, ex=int(SESSION_TIMEOUT.total_seconds()))
+            logger.info(f"JWT almacenado para sesión: {session_id}")
         except Exception as e:
-            print(f"Error almacenando JWT: {e}")
+            logger.error(f"Error almacenando JWT: {e}")
             raise
 
     async def get_jwt(self, session_id: str):
         """Recupera un JWT asociado a una sesión."""
         try:
-            return await self.redis.get(session_id)
+            jwt = await self.redis.get(session_id)
+            logger.info(f"JWT recuperado para sesión: {session_id}")
+            return jwt
         except Exception as e:
-            print(f"Error obteniendo JWT: {e}")
+            logger.error(f"Error obteniendo JWT: {e}")
             raise
 
     async def delete_jwt(self, session_id: str):
         """Elimina un JWT asociado a una sesión."""
         try:
             await self.redis.delete(session_id)
+            logger.info(f"JWT eliminado para sesión: {session_id}")
         except Exception as e:
-            print(f"Error eliminando JWT: {e}")
+            logger.error(f"Error eliminando JWT: {e}")
             raise
 
     @staticmethod
@@ -79,9 +88,9 @@ class SessionManager:
                 socket_connect_timeout=5
             )
             pong = await redis_client.ping()
-            print(f"Conexión exitosa a Redis: {pong}")
+            logger.info(f"Conexión exitosa a Redis: {pong}")
         except Exception as e:
-            print(f"Error conectando a Redis: {e}")
+            logger.error(f"Error conectando a Redis: {e}")
             raise
         finally:
             await redis_client.close()

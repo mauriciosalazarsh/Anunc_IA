@@ -1,5 +1,3 @@
-# main.py
-
 # from ddtrace import patch_all, tracer
 # patch_all()  # Habilita el trazado automático para todas las dependencias compatibles
 
@@ -13,6 +11,11 @@ from services.product_service.routes import router as product_router
 from dotenv import load_dotenv
 import os
 from mangum import Mangum  # Importar Mangum para Lambda
+import logging
+
+# Configuración básica de logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("uvicorn.error")
 
 # Cargar las variables de entorno
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
@@ -46,7 +49,7 @@ async def startup_event():
     try:
         await SessionManager.initialize_redis()
     except Exception as e:
-        print(f"Fallo en la inicialización de Redis: {e}")
+        logger.error(f"Fallo en la inicialización de Redis: {e}")
         # Dependiendo de la lógica, podrías querer terminar la aplicación o manejar el error de otra manera
 
 # Cierre de servicios al cerrar la aplicación

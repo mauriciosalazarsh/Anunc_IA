@@ -7,9 +7,10 @@ from passlib.context import CryptContext
 from common.utils.session_manager import SessionManager  # Importar SessionManager
 import os
 from datetime import datetime, timedelta, timezone
+import logging
 
-# Inicializar el gestor de sesiones
-session_manager = SessionManager()
+# Configuración básica de logging
+logger = logging.getLogger("uvicorn.error")
 
 # Configuración para el manejo de contraseñas
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
@@ -21,13 +22,18 @@ if not SECRET_KEY:
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-def verify_password(plain_password, hashed_password):
+# Función para inicializar `SessionManager` como dependencia
+async def get_session_manager() -> SessionManager:
+    """Devuelve una instancia de SessionManager."""
+    return SessionManager()
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
-def get_password_hash(password):
+def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
-def create_access_token(data: dict, expires_delta: timedelta = None):
+def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -37,7 +43,12 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-async def get_current_user(request: Request, db: Session = Depends(get_db)):
+async def get_current_user(
+    request: Request,
+    db: Session = Depends(get_db),
+    session_manager: SessionManager = Depends(get_session_manager),
+):
+    """Obtiene al usuario actual a partir de un token almacenado en Redis."""
     session_id = request.cookies.get("session_id")
     if not session_id:
         raise HTTPException(
@@ -47,17 +58,24 @@ async def get_current_user(request: Request, db: Session = Depends(get_db)):
         )
 
     # Obtener el JWT desde Redis
-    token = await session_manager.get_jwt(session_id)
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Sesión inválida o expirada.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    try:
+        token = await session_manager.get_jwt(session_id)
+        if not token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Sesión inválida o expirada.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
-    # Convertir bytes a string si es necesario
-    if isinstance(token, bytes):
-        token = token.decode('utf-8')
+        # Convertir bytes a string si es necesario
+        if isinstance(token, bytes):
+            token = token.decode("utf-8")
+    except Exception as e:
+        logger.error(f"Error al obtener el token desde Redis: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno del servidor.",
+        )
 
     try:
         # Decodificar el token y verificar su validez
@@ -88,6 +106,7 @@ async def get_current_user(request: Request, db: Session = Depends(get_db)):
     return user
 
 def authenticate_user(db: Session, email: str, password: str):
+    """Autentica a un usuario verificando su email y contraseña."""
     user = db.query(Usuario).filter(Usuario.email == email).first()
     if not user:
         return False

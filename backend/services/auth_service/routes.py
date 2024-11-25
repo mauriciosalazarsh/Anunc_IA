@@ -6,14 +6,26 @@ from common.database.database import get_db
 from datetime import timedelta
 from common.models.usuario import Usuario, Cuenta
 from common.schemas.usuario import UsuarioCreate, UsuarioResponse
-from common.utils.session_manager import SessionManager  # Importar SessionManager
+# from common.utils.session_manager import SessionManager  # Eliminar esta línea
+from services.auth_service.security import get_session_manager  # Importar la dependencia
 
 router = APIRouter()
-session_manager = SessionManager()  # Inicializar el gestor de sesiones
 
-@router.post("/register", response_model=UsuarioResponse, status_code=status.HTTP_201_CREATED, summary="Registrar un nuevo usuario")
-async def register_usuario(usuario: UsuarioCreate, response: Response, db: Session = Depends(get_db)):
-    logs = [f"Datos de registro recibidos - Nombre: {usuario.nombre}, Email: {usuario.email}, Contraseña: {usuario.password}"]
+@router.post(
+    "/register",
+    response_model=UsuarioResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Registrar un nuevo usuario"
+)
+async def register_usuario(
+    usuario: UsuarioCreate,
+    response: Response,
+    db: Session = Depends(get_db),
+    session_manager: security.SessionManager = Depends(get_session_manager)  # Usar la dependencia
+):
+    logs = [
+        f"Datos de registro recibidos - Nombre: {usuario.nombre}, Email: {usuario.email}, Contraseña: {usuario.password}"
+    ]
 
     db_usuario = db.query(Usuario).filter(Usuario.email == usuario.email).first()
     if db_usuario:
@@ -75,7 +87,12 @@ async def register_usuario(usuario: UsuarioCreate, response: Response, db: Sessi
         raise HTTPException(status_code=500, detail="Error al registrar el usuario.")
 
 @router.post("/login", summary="Iniciar sesión de un usuario")
-async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+async def login(
+    response: Response,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+    session_manager: security.SessionManager = Depends(get_session_manager)  # Usar la dependencia
+):
     logs = [f"Intento de inicio de sesión - Email: {form_data.username}"]
 
     # Autenticar al usuario
@@ -114,7 +131,11 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
     return {"message": "Inicio de sesión exitoso"}
 
 @router.post("/logout", summary="Cerrar sesión")
-async def logout(response: Response, request: Request):
+async def logout(
+    response: Response,
+    request: Request,
+    session_manager: security.SessionManager = Depends(get_session_manager)  # Usar la dependencia
+):
     logs = ["Intento de cierre de sesión"]
 
     # Obtener el session_id de la cookie
