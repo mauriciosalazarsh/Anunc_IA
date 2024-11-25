@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-    baseURL: "https://anuncia.tech/", // Cambia al dominio correcto
+    baseURL: "https://kvpkimi65a3umrcqhbfnkqg2ma0yeare.lambda-url.us-east-2.on.aws", // Cambia al dominio correcto
     headers: {
         "Content-Type": "application/json",
     },
