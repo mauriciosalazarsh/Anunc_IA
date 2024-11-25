@@ -28,13 +28,12 @@ jobs:
     - name: Install dependencies and package code
       working-directory: ./backend
       run: |
-        rm -rf package
-        mkdir -p package
+        rm -rf build
+        mkdir -p build
         python -m pip install --upgrade pip
-        pip install --no-cache-dir -r requirements.txt -t package
-        rsync -av --exclude='package' . package/
-        cp -r * package/
-        cd package
+        pip install --no-cache-dir -r requirements.txt -t build
+        rsync -av --exclude='build' . build/
+        cd build
         zip -r9 ../backend.zip .
         cd ..
         ZIP_SIZE=$(du -b backend.zip | cut -f1)
