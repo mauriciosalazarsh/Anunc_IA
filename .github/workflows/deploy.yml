@@ -61,6 +61,7 @@ jobs:
     - name: Prepare Lambda package
       run: |
         # Copia todo el código de backend y dependencias al paquete
+        mkdir -p backend/package  # Crear el directorio si no existe
         cp -r backend/* backend/package/
         cp backend/main.py backend/package/
         cd backend/package
