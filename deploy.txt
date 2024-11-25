@@ -1,0 +1,110 @@
+name: Deploy AnuncIA to AWS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy_backend:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Set PYTHONPATH
+      run: echo "PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/backend" >> $GITHUB_ENV
+
+    # Configura variables de entorno usando los secretos de GitHub
+    - name: Set environment variables
+      run: |
+        echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+        echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> $GITHUB_ENV
+        echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+
+    - name: Install dependencies
+      run: |
+        pip install -r backend/requirements.txt
+        pip install pytest coverage pytest-asyncio anyio httpx alembic
+
+    # Aplica las migraciones sin `cd backend` para evitar duplicar la ruta
+    - name: Apply Alembic migrations
+      working-directory: ./backend  # Configura el directorio de trabajo
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      run: |
+        alembic upgrade head
+
+    - name: Run tests with coverage
+      env:
+        REDIS_URL: redis://localhost:6379
+        DATABASE_URL: "sqlite:///:memory:"
+      run: |
+        coverage run --rcfile=.coveragerc -m pytest tests
+        coverage report
+        coverage xml -o coverage.xml
+      continue-on-error: true
+
+    - name: Zip backend code
+      run: zip -r backend.zip backend/ main.py requirements.txt
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-2 
+
+    - name: Deploy to AWS Lambda
+      run: |
+        aws lambda update-function-code \
+          --function-name anunc-ia-backend \
+          --zip-file fileb://backend.zip
+
+  deploy_frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18' 
+
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm install
+
+    # Skip deployment in development mode
+    - name: Skip deployment in development mode
+      if: ${{ github.event_name == 'push' }}
+      run: echo "Development build, skipping deployment."
+
+    - name: Build frontend (only for production)
+      if: ${{ github.event_name != 'push' }}
+      run: |
+        cd frontend
+        npm run build
+
+    - name: Deploy to S3 (only if build exists)
+      if: ${{ github.event_name != 'push' }}
+      run: |
+        if [ -d "frontend/build" ]; then
+          aws s3 sync frontend/build/ s3://anunc-ia-frontend --delete
+        else
+          echo "Build folder not found, skipping S3 sync"
+        fi

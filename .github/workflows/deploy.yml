@@ -45,8 +45,19 @@ jobs:
       run: |
         mkdir -p lambda_layer/python
         pip install --upgrade pip
-        pip install -r backend/requirements.txt -t lambda_layer/python
+        pip install --no-cache-dir -r backend/requirements.txt -t lambda_layer/python
+        # Eliminar archivos innecesarios (opcional)
+        find lambda_layer/python -name "*.pyc" -delete
+        find lambda_layer/python -name "__pycache__" -delete
+        # Comprimir la capa
         zip -r lambda_layer.zip lambda_layer
+        # Verificar el tamaño del ZIP
+        LAYER_SIZE=$(du -b lambda_layer.zip | cut -f1)
+        echo "Layer size: $LAYER_SIZE bytes"
+        if [ $LAYER_SIZE -gt 52428800 ]; then
+          echo "Layer size exceeds 50 MB limit."
+          exit 1
+        fi
 
     # 6. Desplegar la Capa a AWS Lambda
     - name: Deploy Lambda Layer
@@ -81,7 +92,7 @@ jobs:
       working-directory: ./backend
       run: |
         python -m pip install --upgrade pip
-        python -m pip install -r requirements.txt
+        python -m pip install --no-cache-dir -r requirements.txt
         python -m pip list  # Listar paquetes instalados para depuración
 
     # 8. Verificar Instalación de Alembic
@@ -105,7 +116,7 @@ jobs:
         DATABASE_URL: "sqlite:///:memory:"
       working-directory: ./backend
       run: |
-        python -m pip install coverage
+        python -m pip install --no-cache-dir coverage
         coverage run --rcfile=.coveragerc -m pytest tests
         coverage report
         coverage xml -o coverage.xml
@@ -116,6 +127,13 @@ jobs:
       working-directory: ./backend
       run: |
         zip -r backend.zip main.py  # Crear el ZIP solo con el código fuente
+        # Verificar el tamaño del ZIP
+        ZIP_SIZE=$(du -b backend.zip | cut -f1)
+        echo "Backend package size: $ZIP_SIZE bytes"
+        if [ $ZIP_SIZE -gt 52428800 ]; then
+          echo "Backend package size exceeds 50 MB limit."
+          exit 1
+        fi
 
     # 12. Listar Contenido del ZIP para Depuración
     - name: List ZIP contents (Debugging Step)
