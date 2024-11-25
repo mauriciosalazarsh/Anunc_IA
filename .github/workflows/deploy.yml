@@ -21,7 +21,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.x'
+        python-version: '3.12'
 
     - name: Set PYTHONPATH
       run: echo "PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/backend" >> $GITHUB_ENV
@@ -36,8 +36,9 @@ jobs:
     - name: Install dependencies
       working-directory: ./backend
       run: |
-        pip install -r requirements.txt
-        pip install -r requirements.txt -t ./package
+        mkdir -p package  # Crear el directorio 'package' si no existe
+        pip install --upgrade pip
+        pip install -r requirements.txt -t ./package  # Instalar todas las dependencias en 'package'
 
     # Aplica las migraciones usando Alembic
     - name: Apply Alembic migrations
@@ -59,13 +60,12 @@ jobs:
       continue-on-error: true
 
     - name: Prepare Lambda package
+      working-directory: ./backend
       run: |
-        mkdir -p backend/package  # Crear el directorio si no existe
-        rsync -av --exclude=package backend/ backend/package/  # Excluir el directorio "package"
-        cp backend/main.py backend/package/  # Copiar main.py en package
-        cd backend/package
-        zip -r ../../backend.zip .  # Crear el ZIP desde la raíz del paquete
-        cd ../..
+        cd package
+        zip -r ../../backend.zip .  # Crear el ZIP con todas las dependencias
+        cd ..
+        zip -g backend.zip main.py  # Añadir 'main.py' al ZIP
 
     - name: List ZIP contents (Debugging Step)
       run: unzip -l backend.zip
@@ -100,7 +100,7 @@ jobs:
         cd frontend
         npm install
 
-    # Skip deployment in development mode
+    # Skip deployment en modo desarrollo
     - name: Skip deployment in development mode
       if: ${{ github.event_name == 'push' }}
       run: echo "Development build, skipping deployment."
