@@ -60,10 +60,10 @@ jobs:
 
     - name: Prepare Lambda package
       run: |
-        # Copia todo el código de backend y dependencias al paquete
         mkdir -p backend/package  # Crear el directorio si no existe
-        cp -r backend/* backend/package/
-        cp backend/main.py backend/package/
+        # Copiar todos los archivos excepto el directorio "package"
+        rsync -av --exclude=package backend/ backend/package/
+        cp backend/main.py backend/package/  # Asegurarte de que main.py está en package
         cd backend/package
         zip -r ../../backend.zip .
         cd ../..
