@@ -36,8 +36,7 @@ jobs:
     - name: Install dependencies
       working-directory: ./backend
       run: |
-        pip install -r requirements.txt
-        pip install alembic  # Instala Alembic si no está en requirements.txt
+        pip install -r requirements.txt -t ./package
 
     # Aplica las migraciones usando Alembic
     - name: Apply Alembic migrations
@@ -45,7 +44,7 @@ jobs:
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
       run: |
-        python -m alembic upgrade head  # Ejecuta Alembic usando python -m
+        python -m alembic upgrade head
 
     - name: Run tests with coverage
       env:
@@ -61,11 +60,10 @@ jobs:
     - name: Prepare Lambda package
       run: |
         mkdir -p backend/package  # Crear el directorio si no existe
-        # Copiar todos los archivos excepto el directorio "package"
-        rsync -av --exclude=package backend/ backend/package/
-        cp backend/main.py backend/package/  # Asegurarte de que main.py está en package
+        rsync -av --exclude=package backend/ backend/package/  # Excluir el directorio "package"
+        cp backend/main.py backend/package/  # Copiar main.py en package
         cd backend/package
-        zip -r ../../backend.zip .
+        zip -r ../../backend.zip .  # Crear el ZIP desde la raíz del paquete
         cd ../..
 
     - name: List ZIP contents (Debugging Step)
@@ -94,7 +92,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '18' 
+        node-version: '18'
 
     - name: Install frontend dependencies
       run: |
