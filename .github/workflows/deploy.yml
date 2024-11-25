@@ -36,7 +36,8 @@ jobs:
     - name: Install dependencies
       working-directory: ./backend
       run: |
-        pip install -r requirements.txt -t ./package
+        pip install -r requirements.txt
+        pip install alembic  # Instalar Alembic explícitamente
 
     # Aplica las migraciones usando Alembic
     - name: Apply Alembic migrations
