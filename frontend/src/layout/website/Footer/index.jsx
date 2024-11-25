@@ -1,5 +1,6 @@
 import React from "react";
 import Container from "../../global/Container";
+
 function Footer() {
     return (
         <>
@@ -14,6 +15,14 @@ function Footer() {
                                 target="_blank"
                             >
                                 AnuncIA
+                            </a>
+                        </p>
+                        <p className="text-xs font-medium text-slate-600 dark:text-slate-200">
+                            <a
+                                className="text-slate-700 dark:text-white hover:text-blue-600 hover:dark:text-blue-600 transition-all"
+                                href="/terms"
+                            >
+                                FAQ
                             </a>
                         </p>
                     </div>

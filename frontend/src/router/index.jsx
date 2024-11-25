@@ -8,6 +8,7 @@ import TemplatesPage from "../pages/App/Templates";
 import TemplatesWriterPage from "../pages/App/Templates/Writer";
 import DocumentsPage from "../pages/App/Documents";
 import DocumentsEdit from "../pages/App/Documents/Edit";
+import TermsPage from "../pages/Website/Terms";
 
 // app
 import AppDashboard from "../pages/App/Dashboard";
@@ -37,6 +38,7 @@ function Router() {
                             {/* Rutas públicas */}
                             <Route index element={<WebsiteIntro />} />
                             <Route path="login" element={<LoginPage />} />
+                            <Route path="terms" element={<TermsPage />} />
                             <Route path="create-account" element={<CreateAccountPage />} />
 
                             {/* Rutas protegidas */}

@@ -1,109 +1,124 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import api from "../../../api/api"; // Ruta ajustada para tu archivo api.js
 import { DataTable } from "../../../components";
 import { ButtonIcon } from "../../../components";
-import { documents, templates } from "../../../store";
 import { EyeIcon, TrashIcon } from "@heroicons/react/24/outline";
-
 import { createColumnHelper } from "@tanstack/react-table";
 
 const columnHelper = createColumnHelper();
 
+// Mapeo para traducir los tipos de documento a títulos personalizados
+const tipoDocumentoMap = {
+    definir_campana: "Definir Campaña",
+    definir_publico_ubicaciones: "Definir público objetivo y ubicación",
+    elegir_formato_cta: "Elección del formato CTA",
+    crear_contenido_creativo: "Copy para anuncio",
+    create_heading: "Encabezados",
+};
+
 function DocumentTable() {
+    const [documents, setDocuments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // Fetch documents from API
+    useEffect(() => {
+        async function fetchDocuments() {
+            try {
+                const response = await api.get("/documents/");
+                setDocuments(response.data);
+
+                // Debugger: Mostrar los documentos en la consola
+                console.log("Fetched Documents:", response.data);
+            } catch (err) {
+                setError("Error loading documents");
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchDocuments();
+    }, []);
+
+    // Handle document deletion
+    const handleDelete = async (id) => {
+        try {
+            await api.delete(`/documents/${id}`);
+            setDocuments(documents.filter((doc) => doc.id_documento !== id));
+        } catch (err) {
+            console.error("Error deleting document:", err);
+        }
+    };
+
+    // Define columns for the table
     const columns = [
-        columnHelper.accessor("name", {
-            header: (info) => "Document",
-            cell: ({ row }) => {
-                const icon = templates.filter((template) =>
-                    template.name.includes(row.original.template)
-                );
-
-                // Verificar si se encontró un ícono, usar un valor predeterminado si no
-                const templateIcon = icon.length > 0 ? icon[0].icon : <EyeIcon className="h-6 w-6" />;
-
-                return (
-                    <div className="flex items-center w-60 sm:w-auto">
-                        <span className="h-6 w-6 block">{templateIcon}</span>
-                        <div className="ms-3">
-                            <div className="text-slate-600 dark:text-slate-200 font-bold text-xs line-clamp-2">
-                                {row.original.name}
-                            </div>
-                            <div className="block text-slate-500 dark:text-slate-400 text-[11px] font-medium">
-                                {row.original.template}
-                            </div>
-                        </div>
-                    </div>
-                );
-            },
+        columnHelper.accessor("id_documento", {
+            header: () => "ID",
+            cell: ({ row }) => (
+                <span className="text-slate-600 dark:text-slate-200 font-bold text-sm">
+                    {row.original.id_documento.toString().padStart(2, "0")} {/* Formato "01", "02", etc. */}
+                </span>
+            ),
         }),
-        columnHelper.accessor("size", {
-            header: (info) => "Size",
+        columnHelper.accessor("tipo_documento", {
+            header: () => "Title",
+            cell: ({ row }) => (
+                <div className="flex items-center">
+                    <EyeIcon className="h-5 w-5 text-blue-600" />
+                    <span className="ms-3 text-slate-600 dark:text-slate-200 font-bold text-sm">
+                        {tipoDocumentoMap[row.original.tipo_documento] || "Título desconocido"}
+                    </span>
+                </div>
+            ),
+        }),
+        columnHelper.accessor("fecha_creacion", {
+            header: () => "Created At",
             cell: ({ row }) => {
+                const date = new Date(row.original.fecha_creacion);
                 return (
-                    <span className="text-slate-500 dark:text-slate-400 text-xs">
-                        <strong>{row.original.size} </strong>
-                        {row.original.type === "text"
-                            ? "Words"
-                            : row.original.type === "image"
-                            ? "Pixels"
-                            : row.original.type === "code"
-                            ? "Lines"
-                            : ""}
+                    <span className="block text-slate-500 dark:text-slate-400 text-xs">
+                        {date.toLocaleString()}
                     </span>
                 );
             },
         }),
-        columnHelper.accessor("created", {
-            header: (info) => "Created At",
-            cell: (info) => {
-                return (
-                    <>
-                        <span className="block text-slate-600 dark:text-slate-200 text-xs font-bold whitespace-nowrap">
-                            {info.getValue().split(",")[0]}
-                        </span>
-                        <span className="block text-slate-500 dark:text-slate-400 text-[11px] font-medium">
-                            {info.getValue().split(",")[1]}
-                        </span>
-                    </>
-                );
-            },
-        }),
         columnHelper.display({
-            id: "tableAction",
-            header: (info) => "",
-            cell: (info) => {
-                return (
-                    <>
-                        <ul className="flex justify-end gap-2">
-                            <li>
-                                <ButtonIcon
-                                    as="Link"
-                                    to={`/documents/edit/${info.row.original.id}`}
-                                    circle
-                                    size="sm"
-                                    className="bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-200 hover:bg-blue-600 hover:text-white hover:dark:bg-blue-600 hover:dark:text-white"
-                                >
-                                    <EyeIcon className="h-3 w-3" />
-                                </ButtonIcon>
-                            </li>
-                            <li>
-                                <ButtonIcon
-                                    circle
-                                    size="sm"
-                                    className="bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-200 hover:bg-rose-600 hover:text-white hover:dark:bg-rose-600 hover:dark:text-white"
-                                >
-                                    <TrashIcon className="h-3 w-3" />
-                                </ButtonIcon>
-                            </li>
-                        </ul>
-                    </>
-                );
-            },
+            id: "actions",
+            header: () => "",
+            cell: ({ row }) => (
+                <div className="flex justify-end gap-2">
+                    {/* Actualización para usar el ID real */}
+                    <ButtonIcon
+                        as="Link"
+                        to={`/documents/edit/${row.original.id_documento}`} // Usa el ID real del documento
+                        circle
+                        size="sm"
+                        className="bg-blue-500 text-white hover:bg-blue-700"
+                    >
+                        <EyeIcon className="h-3 w-3" />
+                    </ButtonIcon>
+                    <ButtonIcon
+                        onClick={() => handleDelete(row.original.id_documento)}
+                        circle
+                        size="sm"
+                        className="bg-red-500 text-white hover:bg-red-700"
+                    >
+                        <TrashIcon className="h-3 w-3" />
+                    </ButtonIcon>
+                </div>
+            ),
         }),
     ];
 
-    return (
-        <DataTable columns={columns} tableData={documents} />
-    );
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>{error}</div>;
+    }
+
+    return <DataTable columns={columns} tableData={documents} />;
 }
 
 export default DocumentTable;

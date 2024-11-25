@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css"; // Asegúrate de importar los estilos de Quill
@@ -6,26 +6,46 @@ import Layout from "../../../../layout/dashboard";
 import Section from "../../../../layout/global/Section";
 import Container from "../../../../layout/global/Container";
 import { Breadcrumbs, Button, Label, Input, Card } from "../../../../components";
-import { documents } from "../../../../store";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import api from "../../../../api/api"; // Asegúrate de importar tu cliente API
 
 function UserEdit() {
-    const { documentId } = useParams();
-    const document = documents.find((doc) => doc.id === documentId);
+    const { documentId } = useParams(); // Obtiene el ID del documento desde la URL
+    const [document, setDocument] = useState(null); // Estado para el documento actual
+    const [content, setContent] = useState(""); // Estado para el contenido del documento
+    const [loading, setLoading] = useState(true); // Estado de carga
+    const [error, setError] = useState(null); // Estado para errores
 
-    // Manejo de contenido del editor
-    const [content, setContent] = useState(document?.content || "");
+    // Fetch the document from the API
+    useEffect(() => {
+        async function fetchDocument() {
+            try {
+                setLoading(true);
+                const response = await api.get(`/documents/${documentId}`);
+                setDocument(response.data);
+                setContent(response.data.contenido); // Cargar el contenido del documento
+            } catch (err) {
+                console.error("Error fetching document:", err);
+                setError("Documento no encontrado");
+            } finally {
+                setLoading(false);
+            }
+        }
 
-    // Ref para acceder directamente al editor
-    const quillRef = useRef(null);
+        fetchDocument();
+    }, [documentId]);
 
-    // Muestra un mensaje si no se encuentra el documento
-    if (!document) {
-        return <p>Documento no encontrado</p>;
+    // Muestra un mensaje si el documento no se encuentra o hay un error
+    if (loading) {
+        return <p>Cargando documento...</p>;
+    }
+
+    if (error) {
+        return <p>{error}</p>;
     }
 
     return (
-        <Layout title={`Editar ${document.name}`}>
+        <Layout title={`Editar ${document.tipo_documento || "Documento"}`}>
             <Section className="px-3 py-6">
                 <Container>
                     <div className="mb-7 flex justify-between items-center -mx-3">
@@ -39,7 +59,7 @@ function UserEdit() {
                                         text: "Documentos",
                                         link: "/documents",
                                     },
-                                    { text: document.name },
+                                    { text: document.tipo_documento },
                                 ]}
                             />
                         </div>
@@ -61,7 +81,7 @@ function UserEdit() {
                                 <span className="text-base text-slate-400 font-normal">
                                     Editar -{" "}
                                 </span>
-                                {document.name}
+                                {document.tipo_documento}
                             </h2>
                         </div>
                         <div className="px-6 pt-5 pb-6">
@@ -75,7 +95,7 @@ function UserEdit() {
                                             Nombre del Documento
                                         </Label>
                                         <Input
-                                            defaultValue={document.name}
+                                            defaultValue={document.tipo_documento}
                                             id="documentName"
                                         />
                                     </div>
@@ -83,7 +103,6 @@ function UserEdit() {
                                 <div className="w-full px-3">
                                     <div className="py-3">
                                         <ReactQuill
-                                            ref={quillRef} // Asigna el ref
                                             theme="snow"
                                             value={content}
                                             onChange={setContent}
