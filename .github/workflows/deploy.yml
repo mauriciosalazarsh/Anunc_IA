@@ -36,12 +36,11 @@ jobs:
     - name: Install dependencies
       working-directory: ./backend
       run: |
-        pip install -r backend/requirements.txt
-        pip install pytest coverage pytest-asyncio anyio httpx alembic
+        pip install -r requirements.txt -t ./package
 
     # Aplica las migraciones sin `cd backend` para evitar duplicar la ruta
     - name: Apply Alembic migrations
-      working-directory: ./backend  # Configura el directorio de trabajo
+      working-directory: ./backend
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
       run: |
@@ -51,6 +50,7 @@ jobs:
       env:
         REDIS_URL: redis://localhost:6379
         DATABASE_URL: "sqlite:///:memory:"
+      working-directory: ./backend
       run: |
         coverage run --rcfile=.coveragerc -m pytest tests
         coverage report
@@ -65,17 +65,16 @@ jobs:
         cd backend/package
         zip -r ../../backend.zip .
         cd ../..
-    
-    - name: List ZIP contents
-      run: |
-        unzip -l backend.zip
-    
+
+    - name: List ZIP contents (Debugging Step)
+      run: unzip -l backend.zip
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-2 
+        aws-region: us-east-2
 
     - name: Deploy to AWS Lambda
       run: |
