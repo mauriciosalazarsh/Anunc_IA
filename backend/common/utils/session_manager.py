@@ -1,6 +1,7 @@
 import redis.asyncio as aioredis
 from datetime import timedelta
 import os
+import asyncio
 
 SESSION_TIMEOUT = timedelta(minutes=30)
 
@@ -42,3 +43,16 @@ class SessionManager:
         except Exception as e:
             print(f"Error eliminando JWT: {e}")
             raise
+
+    @staticmethod
+    async def test_redis_connection():
+        try:
+            redis_client = aioredis.from_url(os.getenv("REDIS_URL"), decode_responses=True)
+            # Prueba la conexión con un comando PING
+            pong = await redis_client.ping()
+            print(f"Conexión exitosa a Redis: {pong}")
+        except Exception as e:
+            print(f"Error conectando a Redis: {e}")
+            raise
+
+asyncio.run(SessionManager.test_redis_connection())
