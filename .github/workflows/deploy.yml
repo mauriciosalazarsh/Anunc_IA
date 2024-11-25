@@ -33,7 +33,15 @@ jobs:
         echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> $GITHUB_ENV
         echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
 
-    - name: Install dependencies
+    # Instalar dependencias globalmente para ejecutar Alembic
+    - name: Install dependencies globally
+      working-directory: ./backend
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # Instalar dependencias en el directorio de empaquetado para Lambda
+    - name: Install dependencies for Lambda package
       working-directory: ./backend
       run: |
         mkdir -p package  # Crear el directorio 'package' si no existe
