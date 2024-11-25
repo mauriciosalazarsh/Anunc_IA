@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 import os
 from mangum import Mangum  # Importar Mangum para Lambda
 import logging
+from fastapi.responses import JSONResponse
 
 # Configuración básica de logging
 logging.basicConfig(level=logging.INFO)
@@ -66,12 +67,12 @@ app.include_router(document_router, prefix="/documents", tags=["documents"])
 app.include_router(product_router, prefix="/productos", tags=["productos"])
 
 # Ruta raíz para verificar que la API está funcionando
-@app.get("/")
+@app.get("/", response_class=JSONResponse)
 async def root():
     return {"message": "Bienvenido a la API publicitaria"}
 
 # Adaptador Mangum para ejecutar en AWS Lambda
-handler = Mangum(app, api_gateway=False)
+handler = Mangum(app)
 
 # Este bloque solo es necesario si deseas ejecutar la aplicación localmente con Uvicorn
 if __name__ == "__main__":
