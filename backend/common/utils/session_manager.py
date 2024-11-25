@@ -5,23 +5,43 @@ import asyncio
 
 SESSION_TIMEOUT = timedelta(minutes=30)
 
-# Conexión global
-redis_client = None
-
 class SessionManager:
-    def __init__(self, redis_url=None):
-        global redis_client
-        if redis_url is None:
-            redis_url = os.getenv("REDIS_URL", "redis://redis:6379")  # Usa 'redis' si está en Docker
-        print(f"Conectando a Redis en: {redis_url}")
-        
-        if redis_client is None:
+    redis_client = None
+
+    @classmethod
+    async def initialize_redis(cls):
+        """Inicializa la conexión a Redis si no está ya establecida."""
+        if cls.redis_client is None:
+            redis_url = os.getenv("REDIS_URL", "redis://redis:6379")  # URL por defecto para Docker
+            print(f"Conectando a Redis en: {redis_url}")
             try:
-                redis_client = aioredis.from_url(redis_url, decode_responses=True)
+                cls.redis_client = aioredis.from_url(
+                    redis_url,
+                    decode_responses=True,
+                    socket_timeout=5,          # Tiempo de espera para operaciones
+                    socket_connect_timeout=5   # Tiempo de espera para la conexión
+                )
+                # Verifica la conexión
+                pong = await cls.redis_client.ping()
+                if pong:
+                    print("Conexión a Redis exitosa.")
             except Exception as e:
                 print(f"Error conectando a Redis: {e}")
                 raise
-        self.redis = redis_client
+
+    @classmethod
+    async def close_redis(cls):
+        """Cierra la conexión a Redis si está establecida."""
+        if cls.redis_client:
+            await cls.redis_client.close()
+            cls.redis_client = None
+            print("Conexión a Redis cerrada.")
+
+    def __init__(self):
+        """Inicializa una instancia de SessionManager. Asegura que Redis esté inicializado."""
+        if SessionManager.redis_client is None:
+            raise Exception("Redis no está inicializado. Llama a 'SessionManager.initialize_redis()' primero.")
+        self.redis = SessionManager.redis_client
 
     async def store_jwt(self, session_id: str, jwt_token: str):
         """Almacena un JWT asociado a una sesión."""
@@ -51,9 +71,13 @@ class SessionManager:
     async def test_redis_connection():
         """Prueba la conexión a Redis."""
         try:
-            redis_url = os.getenv("REDIS_URL")
-            redis_client = aioredis.from_url(redis_url, decode_responses=True)
-            # Prueba la conexión con un comando PING
+            redis_url = os.getenv("REDIS_URL", "redis://redis:6379")
+            redis_client = aioredis.from_url(
+                redis_url,
+                decode_responses=True,
+                socket_timeout=5,
+                socket_connect_timeout=5
+            )
             pong = await redis_client.ping()
             print(f"Conexión exitosa a Redis: {pong}")
         except Exception as e:

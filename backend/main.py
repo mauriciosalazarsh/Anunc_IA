@@ -1,6 +1,7 @@
+# main.py
+
 # from ddtrace import patch_all, tracer
 # patch_all()  # Habilita el trazado automático para todas las dependencias compatibles
-
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,8 +17,7 @@ from mangum import Mangum  # Importar Mangum para Lambda
 # Cargar las variables de entorno
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
 
-
-# #Configura el tracer de Datadog para FastAPI
+# # Configura el tracer de Datadog para FastAPI
 # tracer.configure(
 #     hostname=os.getenv("DD_AGENT_HOST", "localhost")  # Asegúrate de que apunte al Datadog Agent
 # )
@@ -28,7 +28,7 @@ app = FastAPI(
     title="Anunc IA Backend",
     description="API para gestionar el backend de Anunc IA",
     version="1.0.0"
-    )
+)
 
 # Configuración de CORS
 app.add_middleware(
@@ -39,23 +39,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Inicialización de servicios al iniciar la aplicación
+@app.on_event("startup")
+async def startup_event():
+    from common.utils.session_manager import SessionManager
+    try:
+        await SessionManager.initialize_redis()
+    except Exception as e:
+        print(f"Fallo en la inicialización de Redis: {e}")
+        # Dependiendo de la lógica, podrías querer terminar la aplicación o manejar el error de otra manera
 
-# Incluir el router del servicio de autenticación
+# Cierre de servicios al cerrar la aplicación
+@app.on_event("shutdown")
+async def shutdown_event():
+    from common.utils.session_manager import SessionManager
+    await SessionManager.close_redis()
+
+# Incluir routers
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
-
-# Incluir el router del servicio de contenido
 app.include_router(ai_content_router, prefix="/content", tags=["ai_content"])
-
-# Incluir el router del servicio de cuentas
 app.include_router(user_router, prefix="/users", tags=["users"])
-
-# Incluir el router del servicio de documentos
 app.include_router(document_router, prefix="/documents", tags=["documents"])
-
-# Incluir el router del servicio de documentos
 app.include_router(product_router, prefix="/productos", tags=["productos"])
 
-# Punto de entrada básico para verificar si la API está funcionando
+# Ruta raíz para verificar que la API está funcionando
 @app.get("/")
 async def root():
     return {"message": "Bienvenido a la API publicitaria"}
