@@ -119,9 +119,10 @@ async def login(
     response.set_cookie(
         key="session_id",
         value=session_id,
-        httponly=False,
-        samesite="Lax",
-        secure=False  # Cambiar a True en producción con HTTPS
+        httponly=True,
+        samesite="None",
+        secure=True,
+        path="/",  # Cambiar a True en producción con HTTPS
     )
     logs.append("Cookie de sesión configurada en la respuesta")
 

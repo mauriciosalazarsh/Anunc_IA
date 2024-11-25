@@ -33,9 +33,16 @@ export const AuthProvider = ({ children }) => {
     // Función para iniciar sesión
     const login = async (email, password) => {
         try {
-            const response = await axiosInstance.post("/auth/login", {
-                username: email,
-                password: password,
+            const params = new URLSearchParams();
+            params.append('username', email);
+            params.append('password', password);
+            params.append('grant_type', 'password'); // Si es necesario
+            // Agrega otros parámetros si es necesario, como client_id y client_secret
+
+            const response = await axiosInstance.post("/auth/login", params, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
             });
 
             // Si necesitas utilizar datos de la respuesta, hazlo aquí

@@ -36,7 +36,7 @@ app = FastAPI(
 # Configuración de CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://anuncia.tech", "http://localhost:8080"],
+    allow_origins=["https://anuncia.tech", "http://localhost:8080","https://kvpkimi65a3umrcqhbfnkqg2ma0yeare.lambda-url.us-east-2.on.aws"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
