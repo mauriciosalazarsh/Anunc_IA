@@ -68,6 +68,13 @@ jobs:
       run: |
         cd frontend
         npm run build
+    
+    - name: Verify dist directory exists
+      run: |
+        if [ ! -d "frontend/dist" ]; then
+          echo "Error: Dist directory not found. Exiting."
+          exit 1
+        fi
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -79,4 +86,4 @@ jobs:
 
     - name: Deploy frontend to S3
       run: |
-        aws s3 sync frontend/build/ s3://anunc-ia-frontend --delete
+        aws s3 sync frontend/dist/ s3://anunc-ia-frontend --delete
