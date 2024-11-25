@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 session_manager = SessionManager()
 
 # Configuración para el manejo de contraseñas
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 # Configuración para tokens JWT
 SECRET_KEY = os.getenv("SECRET_KEY")
