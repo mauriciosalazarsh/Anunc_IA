@@ -71,9 +71,9 @@ async def register_usuario(
         response.set_cookie(
             key="session_id",
             value=session_id,
-            httponly=False,
+            httponly=True,
             samesite="None",
-            secure=False,
+            secure=True,
             path="/",  # Cambiar a True en producción con HTTPS
             )
         logs.append("Cookie de sesión configurada en la respuesta")
